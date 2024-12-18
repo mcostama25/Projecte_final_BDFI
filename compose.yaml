@@ -1,0 +1,70 @@
+version: "3.5"
+services:
+  web:
+    build: resources/web
+    container_name: servidorFlask
+    ports:
+      - "5001:5001"
+    volumes:
+      - /home/ibdn/Documents/LAB_final/practica_creativa:/project
+    command: ["python3","/project/resources/web/predict_flask.py"]
+    networks:
+      - net-bridge
+
+  mongo:
+    image: mongo:4.4
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - /home/ibdn/Documents/LAB_final/practica_creativa/mongo_data:/DB
+      - /home/ibdn/Documents/LAB_final/practica_creativa:/project
+    networks:
+      - net-bridge
+
+  zookeeper_kafka:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: kfk_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - 2181:2181
+    networks:
+      - net-bridge
+
+  kafka:
+    image: confluentinc/cp-kafka:3.3.3
+    container_name: kafka
+    depends_on:
+      - zookeeper_kafka
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 0
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper_kafka:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://loclahost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_REPLICATION_FACTOR: 1
+    volumes:
+      - /home/ibdn/Documents/LAB_final/practica_creativa:/project
+    networks:
+      - net-bridge
+    command: ["/project/kafka_2.12-3.4.0/start_kafka.sh"]
+  
+  spark:
+    image: bitnami/spark:3.3.3
+    container_name: spark
+    volumes:
+      - /home/ibdn/Documents/LAB_final/practica_creativa:/project/
+    command: >
+      sh -c "spark-submit --class es.upm.dit.ging.predictor.MakePrediction --master local[*] \
+      --packages org.mongodb.spark:mongo-spark-connector_2.12:10.1.1,org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.0 \
+      /project/flight_prediction/target/scala-2.12/flight_prediction_2.12-0.1.jar"
+    networks:
+      - net-bridge
+
+networks:
+  net-bridge:
+    driver: bridge
+      

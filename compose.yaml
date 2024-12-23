@@ -1,7 +1,6 @@
 version: "3.5"
 services:
   web:
-    image: python:3.10-alpine
     build: resources/web
     container_name: web
     depends_on:
@@ -13,9 +12,6 @@ services:
     environment:
       PROJECT_HOME: /project
     command: >
-      sh -c "pip install --upgrade pip && \
-        pip install -r /project/requirements.txt"
-    command: 
       sh -c " sleep 30 && python3 /project/resources/web/predict_flask.py"
     networks:
       - net-bridge
@@ -74,52 +70,54 @@ services:
       - /project/kafka_2.12-3.4.0/start_kafka.sh
   
   spark-master:
-    image: bde2020/spark-master:3.2.1-hadoop3.2
+    image: bde2020/spark-master:3.3.0-hadoop3.3
     container_name: spark-master
     ports:
       - "7077:7077"
       - "9001:9001"
       - "8080:8080"
     environment:
-      - "SPARK_MASTER=${SPARK_MASTER}"
+      - "SPARK_MASTER=spark://spark-master:7077"
       - "INIT_DAEMON_STEP=setup_spark"
       - "constraint:node==spark-master"
-      - "SERVER=${SERVER}"
     volumes:
       - /home/ibdn/Documents/LAB_final/practica_creativa:/project
+    networks:
+      - net-bridge
 
   spark-worker1:
-    image: bde2020/spark-worker:3.2.1-hadoop3.2
+    image: bde2020/spark-worker:3.3.0-hadoop3.3
     container_name: spark-worker1
     depends_on:
       - spark-master
     ports:
       - "8081:8081"
     environment:
-      - "SPARK_MASTER=${SPARK_MASTER}"
+      - "SPARK_MASTER=spark://spark-master:7077"
       - "INIT_DAEMON_STEP=setup_spark"
-      - "constraint:node==spark-master"
-      - "SERVER=${SERVER}"
+      - "constraint:node==spark-worker"
     volumes:
       - /home/ibdn/Documents/LAB_final/practica_creativa:/project
+    networks:
+      - net-bridge
 
   spark-worker2:
-    image: bde2020/spark-worker:3.2.1-hadoop3.2
+    image: bde2020/spark-worker:3.3.0-hadoop3.3
     container_name: spark-worker2
     depends_on:
       - spark-master
     ports:
       - "8082:8081"
     environment:
-      - "SPARK_MASTER=${SPARK_MASTER}"
-      - "INIT_DAEMON_STEP=setup_spark"
+      - "SPARK_MASTER=spark://spark-master:7077"
       - "constraint:node==spark-master"
-      - "SERVER=${SERVER}"
     volumes:
       - /home/ibdn/Documents/LAB_final/practica_creativa:/project
+    networks:
+      - net-bridge
 
   spark-submit:
-    image: bitnami/spark:3.3.3
+    image: bde2020/spark-submit:3.3.0-hadoop3.3
     container_name: spark-submit
     depends_on:
       - spark-master
@@ -128,13 +126,12 @@ services:
     ports:
       - "4040:4040"
     environment:
-      - "SPARK_MASTER=${SPARK_MASTER}"
-      - "constraint:node==spark-mastyer"
-      - "SERVER=${SERVER}"
+      - "SPARK_MASTER=spark://spark-master:7077"
+      - "constraint:node==spark-master"
     volumes:
       - /home/ibdn/Documents/LAB_final/practica_creativa:/project/
     command: >
-      sh -c "sleep 15; spark-submit --class es.upm.dit.ging.predictor.MakePrediction --master local[*] \
+      bash -c "sleep 15; /spark/bin/spark-submit --class es.upm.dit.ging.predictor.MakePrediction --master spark://spark-master:7077\
       --packages org.mongodb.spark:mongo-spark-connector_2.12:10.1.1,org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.0 \
       /project/flight_prediction/target/scala-2.12/flight_prediction_2.12-0.1.jar"
     networks:

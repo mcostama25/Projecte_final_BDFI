@@ -36,7 +36,7 @@ consumer = KafkaConsumer(
     bootstrap_servers='kafka:9092',          # Dirección del servidor Kafka
     auto_offset_reset='earliest',           # Leer mensajes desde el inicio si no hay un offset almacenado
     enable_auto_commit=True,                # Confirmar automáticamente el procesamiento de mensajes
-    group_id='flights_response_group',      # Grupo de consumidores
+    group_id=None,      # Grupo de consumidores
     value_deserializer=lambda x: json.loads(x.decode('utf-8'))  # Deserializar mensajes JSON
 )
 

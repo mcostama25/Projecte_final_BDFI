@@ -35,7 +35,7 @@ spec:
             - name : project-volume
               mountPath: /project
               readOnly: true
-      volume:
+      volumes:
         - name: local-volume
           persistantVolumeClaim:
             claimName: local-pvc

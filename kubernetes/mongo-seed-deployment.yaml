@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert --file ../compose.yaml
+    kompose.version: 1.26.1 (a9d05d509)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: mongo-seed
+  name: mongo-seed
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: mongo-seed
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert --file ../compose.yaml
+        kompose.version: 1.26.1 (a9d05d509)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/net-bridge: "true"
+        io.kompose.service: mongo-seed
+    spec:
+      containers:
+        - args:
+            - /project/resources/import_distances.sh
+            - '&&'
+            - echo
+            - '[!] DATA IMPORTED!'
+          image: mongo:4.0
+          name: mongo-seed
+          resources: {}
+          volumeMounts:
+            - name : project-volume
+              mountPath: /project
+      volumes:
+      - name: project-volume
+        hostPath:
+          path: /home/ibdn/Documents/LAB_final/practica_creativa  # Path on the host machine
+          type: Directory       # Ensures it is a directory
+      restartPolicy: Always
+status: {}

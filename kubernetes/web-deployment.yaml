@@ -33,7 +33,7 @@ spec:
           env:
             - name: PROJECT_HOME
               value: /project
-          image: web
+          image: python:3.10-alpine
           name: web
           ports:
             - containerPort: 5001

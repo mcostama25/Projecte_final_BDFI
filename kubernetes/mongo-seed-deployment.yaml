@@ -37,6 +37,7 @@ spec:
           volumeMounts:
             - name : project-volume
               mountPath: /project
+              readOnly: true
       volumes:
       - name: project-volume
         hostPath:

@@ -32,7 +32,7 @@ spec:
             - containerPort: 27017
           resources: {}
           volumeMounts:
-            - name : project-volume
+            - name : local-volume
               mountPath: /project
               readOnly: true
       volumes:

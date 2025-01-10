@@ -37,6 +37,6 @@ spec:
               readOnly: true
       volumes:
         - name: local-volume
-          persistantVolumeClaim:
+          persistentVolumeClaim:
             claimName: local-pvc
 

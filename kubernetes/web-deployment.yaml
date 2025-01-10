@@ -42,10 +42,7 @@ spec:
             - name : project-volume
               mountPath: /project
               readOnly: true
-      volumes:
-      - name: project-volume
-        hostPath:
-          path: /home/marti_costa_mart/Projecte_final_BDFI # Path on the host machine
-          type: Directory       # Ensures it is a directory
-      restartPolicy: Always
-status: {}
+      volume:
+      -name: local-volume
+          persistantVolumeClaim:
+            claimName: local-pvc

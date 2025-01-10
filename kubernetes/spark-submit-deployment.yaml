@@ -46,7 +46,7 @@ spec:
       volumes:
       - name: project-volume
         hostPath:
-          path: /home/ibdn/Documents/LAB_final/practica_creativa  # Path on the host machine
+          path: /home/marti_costa_mart/Projecte_final_BDFI  # Path on the host machine
           type: Directory       # Ensures it is a directory
       restartPolicy: Always
 status: {}
